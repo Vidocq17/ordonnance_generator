@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Générateur d'Ordonnances Médicales</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #333;
+        }
+        input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #5cb85c;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #4cae4c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Ordonnance Médicale</h2>
+        <input type="text" id="patientName" placeholder="Nom du patient" required>
+        <input type="date" id="date" required>
+        <input type="text" id="doctorName" placeholder="Nom du docteur" required>
+        <textarea id="medications" placeholder="Médicaments et dosages (ex: Codéine 2 fois par jour, ecstasy après le déjeuner pendant une semaine)" required></textarea>
+        <textarea id="notes" placeholder="Remarques supplémentaires"></textarea>
+        <button type="button" onclick="generatePDF()">Générer Ordonnance</button>
+        <button type="button" onclick="savePDF()">Sauvegarder le PDF</button>
+    </div>
+
+    <script>
+        function generatePDF() {
+            const patientName = document.getElementById('patientName').value;
+            const date = document.getElementById('date').value;
+            const doctorName = document.getElementById('doctorName').value;
+            const medications = document.getElementById('medications').value;
+            const notes = document.getElementById('notes').value;
+
+            fetch('/create-pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ patientName, date, doctorName, medications, notes }),
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Ordonnance-${patientName}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            })
+            .catch(error => console.error('Erreur:', error));
+        };
+        function savePDF() {
+        const patientName = document.getElementById('patientName').value;
+        const date = document.getElementById('date').value;
+        const doctorName = document.getElementById('doctorName').value;
+        const medications = document.getElementById('medications').value;
+        const notes = document.getElementById('notes').value;
+
+        fetch('/create-ordonnance', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ patientName, date, doctorName, medications, notes }),
+        })
+        .then(response => response.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Ordonnance-${patientName}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        })
+        .catch(error => console.error('Erreur:', error));
+    }
+    </script>
+</body>
+</html>
